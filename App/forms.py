@@ -2,6 +2,7 @@ from tkinter.ttk import Style
 from django import forms
 from .models import Candidate, SMOKER
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 
 
 
@@ -137,3 +138,30 @@ class CandidateForm(forms.ModelForm):
         #readonly = ["firstname", "lastname", "job"]
         #for field in readonly:
         #    self.fields[field].widget.attrs['readonly']='True'
+# ----------------------- END SUPER FUNCTION  ----------------------------#
+
+    # FUNCTION TO PREVENT DUPLICATES
+    # METHOD 1 (loop for)
+
+    #def clean_email1(self):
+    #    email= self.cleaned_data.get('email')
+    #    for obj in Candidate.objects.all():
+    #        if obj.email == email:
+    #            raise forms.ValidationError("Denied ! " + email + ' is already registeres')
+    #    return email
+
+    # method number 2
+    def clean_email(self):
+        email=self.cleaned_data.get('email')
+        if Candidate.objects.filter(email=email).exists():  # busco si hay un registro con ese valor. Es similar a como se hace en las views.
+            raise forms.ValidationError("Denied ! {} is already registeres".format(email)) 
+        return email
+
+# OJO CON LA IDENTACION: LO SIQUIENTE VA FUERA DE LA SUPERCLASE
+# concatenate last name and first name
+def name(obj):
+    return "%s %s" % (obj.firstname, obj.lastname)
+     
+#Concatenate (when clicking over the candidate)
+def __self__(self):
+    return self.firstname + ' ' + self.lastaname

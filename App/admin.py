@@ -5,7 +5,7 @@ from django.utils.html import format_html
 
 
 class CandidateAdmin(admin.ModelAdmin):
-    list_filter = ['Situation']
+    list_filter = ['Situation'] 
     list_display = ['firstname', 'lastname', 'job', 'email', 'age', 'created_at', 'status', '_']    
     search_fields = ['firstname', 'lastname', 'email', 'age', 'Situation']
     list_per_page= 10
