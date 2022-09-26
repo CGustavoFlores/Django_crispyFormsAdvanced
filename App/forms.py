@@ -1,10 +1,13 @@
 from concurrent.futures.process import _python_exit
+from email.mime import image
 from tkinter.ttk import Style
+from turtle import textinput
 from django import forms
 from .models import Candidate, SMOKER
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-
+from datetime import date # used in birth date
+import datetime # used to prevent future dates
 
 
 # EVERY letters to lowercase
@@ -53,11 +56,11 @@ class CandidateForm(forms.ModelForm):
                                       }))
     
     # Method de validacion 1
-    age = forms.CharField(
-        label='Your Age', min_length=2,max_length=3,
-        validators= [RegexValidator(r'^[0-9]*$', 
-        message="Only numbers is allowed!")], 
-        widget=forms.TextInput(attrs={'placeholder': 'Age'}))
+    #age = forms.CharField(
+    #    label='Your Age', min_length=2,max_length=3,
+    #    validators= [RegexValidator(r'^[0-9]*$', 
+    #    message="Only numbers is allowed!")], 
+    #    widget=forms.TextInput(attrs={'placeholder': 'Age'}))
     
     
     experience = forms.BooleanField   (label= "I have experiencie!")  #  alta requerid=false
@@ -66,18 +69,61 @@ class CandidateForm(forms.ModelForm):
         label='About you', min_length=10,max_length=1000,
         required=False,
         widget=forms.Textarea(
-            attrs={'placeholder': 'Talk a little about you', 'rows':4}
+            attrs={'placeholder': 'Talk a little about you', 
+                   'rows':6,
+                   'style':'font-size: 13px'
+                   }
             )
         )
     
-    # file upload
-    file = forms.FileField(
+    # file (upload resume)
+    # ES PREFERIBLE LA VALIDACION ACA, Y NO COMO CFUNCION)
+    #file = forms.FileField(
+    #    label="Resume",
+    #    required=True, 
+    #    widget=forms.ClearableFileInput(
+    #        attrs={'style':'font-size 13px',
+    #               'accept':'application/pdf, application/msword'
+    #               }
+    #    )
+    #)
+    
+    # image (photo upload)
+    image = forms.FileField(
+        label="Photo",
         required=True, 
         widget=forms.ClearableFileInput(
-            attrs={'style':'font-size 13px'}
+            attrs={'style':'font-size 13px',
+                   'accept':'image/png, image/jpeg'
+                   }
+        )
+    )
+
+    # institution
+    institution = forms.CharField(
+        label="Institution",
+        min_length=3,
+        max_length=50, 
+        widget=forms.TextInput(
+            attrs={'style':'font-size 13px',
+                   'placeholder':'Institution name'
+                   }
+        )
+    )
+
+    # Course
+    course = forms.CharField(
+        label="Course",
+        min_length=3,
+        max_length=50, 
+        widget=forms.TextInput(
+            attrs={'style':'font-size 13px',
+                   'placeholder':'Course name'
+                   }
         )
     )
     
+
 
     # method 1
     
@@ -89,6 +135,12 @@ class CandidateForm(forms.ModelForm):
         
         exclude = ['created_at', 'Situation']
         
+        labels = {
+            'started_course':'Started',
+            'finished_course':'Finished',
+            'started_job':'Started',
+            'finished_job':'Finished',
+        }
         SALARY = {
             ('','Salary expectation (month)'),
             ('Between ($3000 and $4000)','Between ($3000 and $4000)'),
@@ -98,8 +150,63 @@ class CandidateForm(forms.ModelForm):
         }
         
         GENDER=[('F', 'Female'),('M', 'Male')]
+        
         # OUTSIDE WIDGET
         widgets = {
+            # Birth date
+            'birth':forms.DateInput(
+                attrs={
+                    'style':'font-size: 13px cursor:pointer' ,
+                    'type':'date',
+                    'onkeydown': 'return false', # block typing inside the input
+                    'min':'1950-01-01',
+                    'max':'2030-01-01'
+                }
+            ),
+            
+            # Started Course
+            'started_course':forms.DateInput(
+             attrs={
+                'style':'font-size: 13px cursor:pointer' ,
+                'type':'date',
+                'onkeydown': 'return false', # block typing inside the input
+                'min':'1950-01-01',
+                'max':'2030-01-01'
+                }
+            ),
+            # finished Course
+            'finished_course':forms.DateInput(
+             attrs={
+                'style':'font-size: 13px cursor:pointer' ,
+                'type':'date',
+                'onkeydown': 'return false', # block typing inside the input
+                'min':'1950-01-01',
+                'max':'2030-01-01'
+                }
+            ),
+            
+            # Started Job
+            'started_job':forms.DateInput(
+             attrs={
+                'style':'font-size: 13px cursor:pointer' ,
+                'type':'date',
+                'onkeydown': 'return false', # block typing inside the input
+                'min':'1950-01-01',
+                'max':'2030-01-01'
+                }
+            ),
+            # finished Job
+            'finished_job':forms.DateInput(
+             attrs={
+                'style':'font-size: 13px cursor:pointer' ,
+                'type':'date',
+                'onkeydown': 'return false', # block typing inside the input
+                'min':'1950-01-01',
+                'max':'2030-01-01'
+                }
+            ),
+            
+            
             # Phone
             'phone': forms.TextInput(
                 attrs={
@@ -194,9 +301,72 @@ class CandidateForm(forms.ModelForm):
         if len(phone) !=15:
             raise forms.ValidationError('Denied ! Phone field is incomplete.')
         return phone
+    
+    # ES PREFERIBLE VALIDARLO EN EL MOMENTO QUE SE VA ELEGIR EDAÑP
+    # # 5) RESTRICTION (FILE EXTENSION - METHOD 2 VIA FUNCTION)
+    #def clean_file(self):
+    #    file=self.cleaned_data('file')
+    #    content_type = file.content_type
+    #    if content_type == 'application/pdf' or content_type == 'application/msword':
+    #        return file
+    #    else:
+    #        raise forms.ValidationError('ONly: PDF DOC DOCX')
+    
+    
+    
+    
+    # # 5) RESTRICTION (FILE EXTENSION ) method 3 for validation input file 
+    
+    def clean_file(self):
+        file=self.cleaned_data.get('file', False)
+        #variables
+        EXT= ['pdf', 'doc', 'docx']
+        ext= str(file).split('.')[-1]
+        type= ext.lower()
+        #statement
+        #a) Accep only pdf-doc-docx
+        if type not in EXT:
+            raise forms.ValidationError('Only: PDF - DOC - DOCX')
+        #b)Prevent upload more than 2mb
+        if file.size > 2 * 10484776:
+            raise forms.ValidationError('Denied ! Maximum allowed is 2MB.')
+        return file
+            
+    # 6) IMAGE ( maximum upload size = 2mb) 
+    
+    def clean_image(self):
+        image=self.cleaned_data.get('image', False)
+        if image.size > 2 * 10484776:
+            raise forms.ValidationError('Denied ! Maximum allowed is 2MB.')
+        return image
+            
+    # 7) birthday ( range  28 to 65) 
+    
+    def clean_birth(self):
+        birth=self.cleaned_data.get('birth')
+        #variables
+        b=birth
+        now=date.today()
+        age = (now.year-b.year) -((now.month,now.day) < (b.month, b.day))
+        #statement
+        if age < 18 or age > 65:
+            raise forms.ValidationError('Denied ! Age must be between 18 and 65.')
+        return  birth
+    
+    # 8) Prevent FUTURES dates ( card 3 and 4) 
+    #   a) college
+    def clean_started_course(self):
+        started_course=self.cleaned_data.get('started_course')
+        if started_course > datetime.date.today():
+            raise forms.ValidationError('Denied ! Futures dates is invalid.')
+        return  started_course
 
-            
-            
+    def clean_finished_course(self):
+        finished_course=self.cleaned_data.get('finished_course')
+        if finished_course > datetime.date.today():
+            raise forms.ValidationError('Denied ! Futures dates is invalid.')
+        return  finished_course
+
     
 
 # OJO CON LA IDENTACION: LO SIQUIENTE VA FUERA DE LA SUPERCLASE

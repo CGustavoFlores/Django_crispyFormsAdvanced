@@ -1,13 +1,19 @@
 from django.contrib import admin
+
+from App.forms import CandidateForm
 from .models import Candidate
 from django.utils.html import format_html
 # Register your models here.
 
 
 class CandidateAdmin(admin.ModelAdmin):
+    radio_fields= {"smoker": admin.HORIZONTAL}
+    form=CandidateForm
+    #readonly_fields= ['experience', 'firstname','lastname','job','email','age','phone']
+    exclude = ['status']
     list_filter = ['Situation'] 
-    list_display = ['firstname', 'lastname', 'job', 'email', 'age', 'created_at', 'status', '_']    
-    search_fields = ['firstname', 'lastname', 'email', 'age', 'Situation']
+    list_display = ['firstname', 'lastname', 'job', 'email', 'created_at', 'status', '_']    
+    search_fields = ['firstname', 'lastname', 'email', 'Situation']
     list_per_page= 10
     # Function to change the icons
     def _(self,obj):
