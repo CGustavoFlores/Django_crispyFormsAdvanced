@@ -249,6 +249,13 @@ class CandidateForm(forms.ModelForm):
         # ------------- WIDGET CONTROL  ------------------
         
         # ------------- READ ONLY  ------------------
+        # other opcion READONLY
+        # pero hay que hacerlo para todos los inputs, y es muy trabajoso
+        instance = getattr(self,'instance',None)
+        if instance and instance.pk:
+            self.fields['firstname'].disabled =True
+        
+        
         #readonly = ["firstname", "lastname", "job"]
         #for field in readonly:
         #    self.fields[field].widget.attrs['readonly']='True'
@@ -354,7 +361,7 @@ class CandidateForm(forms.ModelForm):
         return  birth
     
     # 8) Prevent FUTURES dates ( card 3 and 4) 
-    #   a) college
+    #   a) college 
     def clean_started_course(self):
         started_course=self.cleaned_data.get('started_course')
         if started_course > datetime.date.today():

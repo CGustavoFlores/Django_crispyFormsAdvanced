@@ -137,3 +137,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # NEDIA
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# LOGIN/LOGOUT
+LOGIN_REDIRECT_URL='backend'
+LOGOUT_REDIRECT_URS='home'
